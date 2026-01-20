@@ -12,7 +12,7 @@ export default function BienvenidoPage() {
   // console.log("ver info", info);
 
   const { branding } = useBranding();
-  // console.log("ver branding", branding);
+  console.log("ver branding", branding);
 
 
   const bgWelcome = branding.bannerWelcome;
@@ -33,7 +33,7 @@ export default function BienvenidoPage() {
       {/* Contenido encima */}
       <div className="h-full container mx-auto flex  items-center justify-end relative z-[2]">
         <div className="w-1/2 flex  flex-col justify-center items-center">
-          <p class="text-7xl uppercase font-[700] py-8 mt-16">¡Hola!</p>
+          <p className="text-7xl uppercase font-bold py-8 mt-16">¡Hola!</p>
 
           {info?.name ? (
             <p className="text-4xl text-center uppercase pt-5 pb-2">
@@ -45,7 +45,7 @@ export default function BienvenidoPage() {
             </p>
           )}
 
-          <p class="text-xl uppercase font-bold py-2">"Danec"</p>
+          <p className="text-xl uppercase font-bold py-2">"Danec"</p>
 
           {/* <button
             onClick={() => navigate("/mi-cuenta")}
