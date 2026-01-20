@@ -30,23 +30,27 @@ export default function LoginPage() {
 
   return (
     <AuthLayout>
-      <div className="w-full flex flex-col items-center lg:items-end lg:w-full p-4 pb-0 max-w-lg mx-auto lg:mx-0">
+      <div className="w-full h-full flex flex-col items-center lg:items-end lg:w-full px-4 lg:px-6 max-w-lg mx-auto lg:mx-0 justify-center lg:justify-end overflow-hidden">
         
-        {/* Logo */}
-        <div className="w-full flex justify-center mb-4">
-          <img src={logo} alt="Programa Experto Danec" className="w-[280px] md:w-[320px] object-contain" />
+        {/* Logo superior - Ajuste proporcional */}
+        <div className="w-full flex justify-center mb-4 transition-all duration-300">
+          <img 
+            src={logo} 
+            alt="Programa Experto Danec" 
+            className="w-[200px] md:w-[260px] lg:w-[320px] object-contain max-h-[15vh] lg:max-h-[20vh]" 
+          />
         </div>
 
         {/* Cuadro Blanco de Login */}
-        <div className="w-full bg-white p-10 md:p-12 rounded-[2.5rem] rounded-b-none shadow-2xl flex flex-col gap-6">
-          <h1 className="text-4xl md:text-5xl font-bold text-[#f70030] text-center mb-2 tracking-tight">
+        <div className="w-full bg-white p-3 md:p-6 lg:p-10 rounded-4xl rounded-b-none shadow-2xl flex flex-col gap-4 lg:gap-6 max-h-[75vh] lg:max-h-none overflow-y-auto lg:overflow-visible">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#f70030] text-center mb-1 tracking-tight leading-tight">
             ¡Bienvenido!
           </h1>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 lg:gap-6">
             {/* Usuario */}
-            <div className="flex flex-col gap-1.5 text-left">
-              <label htmlFor="username" className="text-gray-600 font-semibold text-sm ml-1">
+            <div className="flex flex-col gap-1 text-left">
+              <label htmlFor="username" className="text-gray-600 font-semibold text-xs md:text-sm ml-1">
                 Usuario
               </label>
               <input
@@ -56,13 +60,13 @@ export default function LoginPage() {
                 placeholder="Ingresa tu usuario"
                 value={form.username}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-50 transition-all placeholder:text-gray-300"
+                className="w-full px-4 py-2.5 md:py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-50 transition-all placeholder:text-gray-400 text-sm md:text-base"
               />
             </div>
 
             {/* Contraseña */}
-            <div className="flex flex-col gap-1.5 text-left relative">
-              <label htmlFor="password" className="text-gray-600 font-semibold text-sm ml-1">
+            <div className="flex flex-col gap-1 text-left relative">
+              <label htmlFor="password" className="text-gray-600 font-semibold text-xs md:text-sm ml-1">
                 Contraseña
               </label>
               <div className="relative">
@@ -73,33 +77,33 @@ export default function LoginPage() {
                   placeholder="Ingresa tu contraseña"
                   value={form.password}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-50 transition-all placeholder:text-gray-300"
+                  className="w-full px-4 py-2.5 md:py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-50 transition-all placeholder:text-gray-400 text-sm md:text-base"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500"
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
             {error && (
-              <p className="text-red-500 text-sm text-center font-medium -mt-2">{error}</p>
+              <p className="text-red-500 text-xs text-center font-medium -mt-2">{error}</p>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#f70030] text-white py-3.5 rounded-full text-xl font-bold hover:brightness-110 active:scale-[0.98] transition-all mt-2"
+              className="w-full bg-[#f70030] text-white py-3 lg:py-3.5 rounded-full text-lg md:text-xl font-bold hover:brightness-110 active:scale-[0.98] transition-all mt-1"
             >
               {loading ? "Ingresando..." : "Ingresar"}
             </button>
           </form>
 
-          <div className="flex flex-col items-center mt-2">
-            <a href="#" className="text-gray-800 font-bold hover:text-black text-sm md:text-base mb-10">
+          <div className="flex flex-col items-center mt-2 lg:mt-4">
+            <a href="#" className="text-gray-800 font-bold hover:text-black text-xs md:text-sm mb-6 lg:mb-10">
               ¿Olvidaste tu contraseña?
             </a>
 
@@ -108,8 +112,8 @@ export default function LoginPage() {
               target="_blank" 
               href="https://grupodanec.com.ec/danec-linea-experto/"
             >
-              <span className="text-[10px] uppercase tracking-wider text-gray-800 font-bold">volver a</span>
-              <img src={logoHome} alt="Danec Línea Experto" className="h-10 md:h-12 object-contain" />
+              <span className="text-[9px] md:text-[10px] uppercase tracking-wider text-gray-800 font-bold">volver a</span>
+              <img src={logoHome} alt="Danec Línea Experto" className="h-8 md:h-10 lg:h-12 object-contain" />
             </a>
           </div>
         </div>
