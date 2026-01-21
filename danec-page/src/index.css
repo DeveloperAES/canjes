@@ -133,3 +133,9 @@
     cursor: pointer;
     z-index: 20;
 }
+
+
+.h-full-fill{
+    height: stretch;
+    height: -webkit-fill-available;
+}
