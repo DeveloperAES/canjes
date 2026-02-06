@@ -8,10 +8,10 @@ export default function AuthLayout({ children }) {
 
   return (
     <div
-      className="min-h-screen p-4 flex items-center justify-end bg-no-repeat bg-cover bg-center"
+      className="min-h-screen p-4 pb-0 flex items-end justify-end bg-no-repeat bg-cover bg-center"
       style={{ backgroundImage: `url(${fondo})`, backgroundColor: "var(--color-background, #f3f4f6)" }}
     >
-      <div className="p-0 w-full flex justify-end md:p-4">{children}</div>
+      <div className="p-0 w-full flex justify-end md:p-4 md:pb-0">{children}</div>
     </div>
   );
 }
