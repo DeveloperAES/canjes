@@ -75,8 +75,12 @@ export function AuthProvider({ children }) {
   }, []);
 
   // Función para refrescar datos del usuario (llamada manual)
-  const refreshSession = async () => {
+  const refreshSession = async (newToken = null) => {
     try {
+      if (newToken) {
+        localStorage.setItem("token", newToken);
+      }
+
       const me = await getProfileApi();
       const userDetails = await getUserDetailsApi();
       const userPoints = await getUserPointsApi();
