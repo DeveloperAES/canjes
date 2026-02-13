@@ -1,11 +1,12 @@
 import { ButtonNavigate } from "../components/ui/buttons/ButtonNavigation";
-import { postUserCartApi } from "../api/userApi";
+import { postUserCartApi, clearCartApi } from "../api/userApi";
 import { getCatalog } from "../api/productsApi";
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "../context/AuthContext";
 import ExchangeModal from "../components/ui/ExchangeModal";
 import { useModal } from "../context/ModalContext";
 import { useLoading } from "../context/LoadingContext";
+import { Trash2 } from "lucide-react";
 
 export default function CarritoPage() {
     const { userPoints, refreshSession, cartTotal, cart } = useAuth();
@@ -98,17 +99,56 @@ export default function CarritoPage() {
         }
     };
 
+    const handleClearCart = async () => {
+        showModal({
+            type: 'confirm',
+            title: '¿VACIAR CARRITO?',
+            message: '¿Estás seguro de que deseas eliminar todos los productos del carrito?',
+            onConfirm: async () => {
+                showLoading();
+                try {
+                    const res = await clearCartApi();
+                    await refreshSession();
+                    
+                    showModal({
+                        type: 'success',
+                        title: 'CARRITO LIMPIADO',
+                        message: res?.Response?.sRetorno || 'Tu carrito ha sido vaciado correctamente.'
+                    });
+                } catch (error) {
+                    console.error(error);
+                    showModal({
+                        type: 'error',
+                        title: 'ERROR',
+                        message: 'No se pudo limpiar el carrito en este momento.'
+                    });
+                } finally {
+                    hideLoading();
+                }
+            }
+        });
+    };
+
 
     console.log(cart);
 
     return (
         <section className="w-full py-4">
             <div className="container mx-auto px-3 bg-white  shadow-xl shadow-blue-200">
-                <div className="w-full h-full bg-main flex flex-col gap-4">
-                    <p className="text-white text-center text-xl py-4">
-                        CARRITO
+                <div className="w-full h-full bg-main flex items-center justify-between px-6 py-4">
+                    <p className="text-white text-center text-xl font-bold uppercase tracking-widest">
+                        Carrito de Compras
                     </p>
-
+                    
+                    {enrichedCart.length > 0 && (
+                        <button 
+                            onClick={handleClearCart}
+                            className="flex items-center gap-2 bg-white text-[#f70030] px-5 py-2.5 rounded-xl shadow-lg shadow-black/10 hover:bg-gray-50 active:scale-95 transition-all text-[11px] font-black uppercase tracking-tight"
+                        >
+                            <Trash2 size={15} />
+                            Vaciar Carrito
+                        </button>
+                    )}
                 </div>
                 <div className="w-full h-full">
                     {
