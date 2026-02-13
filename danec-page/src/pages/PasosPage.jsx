@@ -17,7 +17,9 @@ export default function PasosPage() {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    const numLeaves = Math.ceil(rawBanners.length / 2);
+    const numLeaves = isMobile 
+        ? Math.max(0, rawBanners.length - 1) 
+        : Math.ceil(rawBanners.length / 2);
 
     const handlePrev = () => {
         setFlippedCount(prev => Math.max(0, prev - 1));
