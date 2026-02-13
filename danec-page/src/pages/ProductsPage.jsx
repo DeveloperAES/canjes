@@ -38,6 +38,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     (async () => {
+      showLoading();
       setLoading(true);
       try {
         const data = await getCatalog();
@@ -47,6 +48,7 @@ export default function ProductsPage() {
         setError("No se pudieron cargar los productos");
       } finally {
         setLoading(false);
+        hideLoading();
       }
     })();
   }, []);

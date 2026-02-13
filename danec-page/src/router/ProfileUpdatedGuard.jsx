@@ -3,17 +3,20 @@
 //que no sea mi-cuenta
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useLoading } from "../context/LoadingContext";
+import { useEffect } from "react";
 
 export default function ProfileUpdatedGuard() {
   const { loading, needsProfileUpdate } = useAuth();
+  const { showLoading, hideLoading } = useLoading();
   const location = useLocation();
 
+  useEffect(() => {
+    if (loading) showLoading();
+    else hideLoading();
+  }, [loading, showLoading, hideLoading]);
 
-
-
-  if (loading) {
-    return <div className="min-h-screen grid place-items-center">Cargando...</div>;
-  }
+  if (loading) return null;
 
   const isInMyAccount = location.pathname.startsWith("/mi-cuenta");
 
