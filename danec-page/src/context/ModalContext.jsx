@@ -26,7 +26,7 @@ export const ModalProvider = ({ children }) => {
         const { onConfirm, type } = statusModal;
         setStatusModal(prev => ({ ...prev, isOpen: false }));
         
-        // Success modals auto-trigger confirm on close.
+        // If it was a success and there's a callback, execute it after closing
         if (type === 'success' && onConfirm) {
             onConfirm();
         }
@@ -40,7 +40,7 @@ export const ModalProvider = ({ children }) => {
                 type={statusModal.type}
                 title={statusModal.title}
                 message={statusModal.message}
-                onClose={() => setStatusModal(prev => ({ ...prev, isOpen: false }))}
+                onClose={hideModal}
                 onConfirm={() => statusModal.onConfirm && statusModal.onConfirm()}
             />
         </ModalContext.Provider>

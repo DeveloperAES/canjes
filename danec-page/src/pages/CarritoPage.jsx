@@ -17,18 +17,18 @@ export default function CarritoPage() {
     const effectivePoints = totalPoints - (cartTotal || 0);
 
     const [catalog, setCatalog] = useState([]);
-    const [loadingCatalog, setLoadingCatalog] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         (async () => {
+            showLoading();
             try {
                 const data = await getCatalog();
                 setCatalog(data.Response.oResponse || []);
             } catch (error) {
                 console.error("Error fetching catalog", error);
             } finally {
-                setLoadingCatalog(false);
+                hideLoading();
             }
         })();
     }, []);
