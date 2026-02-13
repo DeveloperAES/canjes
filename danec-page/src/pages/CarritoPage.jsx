@@ -3,15 +3,14 @@ import { postUserCartApi } from "../api/userApi";
 import { getCatalog } from "../api/productsApi";
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "../context/AuthContext";
-import { toast } from "react-toastify";
 import ExchangeModal from "../components/ui/ExchangeModal";
-import StatusModal from "../components/ui/StatusModal";
+import { useModal } from "../context/ModalContext";
+import { useLoading } from "../context/LoadingContext";
 
 export default function CarritoPage() {
-
-
     const { userPoints, refreshSession, cartTotal, cart } = useAuth();
-    // console.log('ver puntos', userPoints);
+    const { showModal } = useModal();
+    const { showLoading, hideLoading } = useLoading();
 
     const totalPoints = userPoints?.Response?.oResponse[0]?.total || 0;
     const effectivePoints = totalPoints - (cartTotal || 0);
@@ -19,12 +18,6 @@ export default function CarritoPage() {
     const [catalog, setCatalog] = useState([]);
     const [loadingCatalog, setLoadingCatalog] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [statusModal, setStatusModal] = useState({
-        isOpen: false,
-        type: 'success',
-        title: '',
-        message: ''
-    });
 
     useEffect(() => {
         (async () => {
@@ -48,62 +41,48 @@ export default function CarritoPage() {
                 title: product?.name || "Producto no disponible",
                 image: product?.image || "",
                 unitPrice: product?.price || 0,
-                // If item.Total is available we can use it, or calculate
             };
         });
     }, [cart, catalog]);
 
 
     const handleUpdateQuantity = async (productId, delta, unitPrice, currentQuantity) => {
-        console.log('=== handleUpdateQuantity ===');
-        console.log('productId:', productId);
-        console.log('delta:', delta);
-        console.log('unitPrice:', unitPrice);
-        console.log('currentQuantity:', currentQuantity);
-        console.log('effectivePoints:', effectivePoints);
-
         if (delta > 0) {
-            // Check if we have enough effective points for one more item
             if (effectivePoints < unitPrice) {
-                setStatusModal({
-                    isOpen: true,
+                showModal({
                     type: 'error',
                     title: 'Puntos Insuficientes',
-                    message: `No tienes suficientes puntos para agregar más. Tienes ${effectivePoints} disponibles y necesitas ${unitPrice}.`
+                    message: `No tienes suficientes puntos para agregar más. Tienes ${effectivePoints} disponibles y necesitas ${unitPrice} puntos.`
                 });
                 return;
             }
-            console.log('✅ Sufficient points, proceeding...');
         }
 
         const newQuantity = currentQuantity + delta;
 
-        // Allow quantity to be 0 (which should delete the item from cart)
-        if (newQuantity < 0) {
-            // console.log('⚠️ Quantity would be < 0, skipping');
-            return;
-        }
+        if (newQuantity < 0) return;
 
+        showLoading();
         try {
-            // console.log('Calling API with:', { product: productId, quantity: newQuantity });
-            const response = await postUserCartApi({ product: productId, quantity: newQuantity });
-            // console.log('API Response:', response);
+            await postUserCartApi({ product: productId, quantity: newQuantity });
             await refreshSession();
-            // console.log('Session refreshed');
 
             if (newQuantity === 0) {
-                toast.success("Producto eliminado del carrito");
-            } else {
-                toast.success("Carrito actualizado");
+                showModal({
+                    type: 'success',
+                    title: 'PRODUCTO ELIMINADO',
+                    message: 'El producto ha sido removido de tu carrito correctamente.'
+                });
             }
         } catch (error) {
             const msg = error?.response?.data?.message || error?.response?.data?.response?.sRetorno || "Error al actualizar carrito";
-            setStatusModal({
-                isOpen: true,
+            showModal({
                 type: 'error',
                 title: 'Error al actualizar',
                 message: msg
             });
+        } finally {
+            hideLoading();
         }
     };
 
@@ -144,10 +123,11 @@ export default function CarritoPage() {
                     ) : (
                         <>
                             {/* Table Header */}
-                            <div className="hidden md:flex justify-between border-b pb-2 font-bold text-gray-700">
-                                <span className="w-1/2">PRODUCTO</span>
-                                <span className="w-1/4 text-center">PUNTOS</span>
+                            <div className="hidden md:flex justify-between border-b pb-2 font-bold text-gray-700 uppercase tracking-wider">
+                                <span className="w-1/3">PRODUCTO</span>
+                                <span className="w-1/6 text-center">PUNTOS UNIT.</span>
                                 <span className="w-1/4 text-center">CANTIDAD</span>
+                                <span className="w-1/6 text-center">TOTAL PUNTOS</span>
                             </div>
 
                             {/* Cart Items */}
@@ -156,17 +136,18 @@ export default function CarritoPage() {
                                     <div key={item.Id} className="flex flex-col md:flex-row items-center justify-between border-b py-4 gap-4">
 
                                         {/* Product Info */}
-                                        <div className="flex items-center gap-4 w-full md:w-1/2">
+                                        <div className="flex items-center gap-4 w-full md:w-1/3">
                                             <img
                                                 src={item.image}
                                                 alt={item.title}
                                                 className="w-20 h-20 object-contain border rounded"
                                             />
-                                            <span className="font-semibold uppercase">{item.title}</span>
+                                            <span className="font-semibold uppercase text-sm">{item.title}</span>
                                         </div>
 
-                                        {/* Points */}
-                                        <div className="w-full md:w-1/4 text-center font-bold text-gray-700">
+                                        {/* Points Unit */}
+                                        <div className="w-full md:w-1/6 text-center font-bold text-gray-700">
+                                            <span className="md:hidden text-xs text-gray-400 block">UNITARIO</span>
                                             {item.unitPrice}
                                         </div>
 
@@ -185,6 +166,12 @@ export default function CarritoPage() {
                                             >
                                                 +
                                             </button>
+                                        </div>
+
+                                        {/* Total Points per Item */}
+                                        <div className="w-full md:w-1/6 text-center font-black text-red-600">
+                                            <span className="md:hidden text-xs text-gray-400 block text-center">TOTAL</span>
+                                            {item.unitPrice * item.Quantity}
                                         </div>
                                     </div>
                                 ))}
@@ -210,14 +197,6 @@ export default function CarritoPage() {
                 onSuccess={async () => {
                     await refreshSession();
                 }}
-            />
-
-            <StatusModal
-                isOpen={statusModal.isOpen}
-                type={statusModal.type}
-                title={statusModal.title}
-                message={statusModal.message}
-                onClose={() => setStatusModal(prev => ({ ...prev, isOpen: false }))}
             />
 
         </section>

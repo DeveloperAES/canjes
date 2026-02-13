@@ -103,7 +103,7 @@ export default function PasosPage() {
             </div>
 
             {/* Barra de Controles Flotante */}
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#6c757d] text-white rounded-full flex items-center z-50 px-7 py-2 gap-2">
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#6c757d] text-white rounded-full flex items-center z-50 px-7 py-2 gap-2 z-[999]">
 
                 {/* Contador */}
                 <span className="text-sm h-full-fill content-center font-medium pr-3 border-r border-white whitespace-nowrap">

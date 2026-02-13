@@ -5,11 +5,13 @@ import { updateProfileApi } from "../api/userApi";
 import avatarPlaceholder from "../assets/react.svg";
 import { useBranding } from "../context/BrandingContext";
 import { useModal } from "../context/ModalContext";
+import { useLoading } from "../context/LoadingContext";
 
 export default function MiCuentaPage() {
   const { user, needsProfileUpdate, userDetails, refreshSession } = useAuth();
   const navigate = useNavigate();
   const { showModal } = useModal();
+  const { showLoading, hideLoading } = useLoading();
 
   const { branding } = useBranding();
 
@@ -150,6 +152,7 @@ export default function MiCuentaPage() {
       return;
     }
 
+    showLoading();
     try {
       const payload = {
         ...formData,
@@ -180,6 +183,8 @@ export default function MiCuentaPage() {
         title: 'ERROR',
         message: 'Error al actualizar el perfil'
       });
+    } finally {
+      hideLoading();
     }
   };
 
