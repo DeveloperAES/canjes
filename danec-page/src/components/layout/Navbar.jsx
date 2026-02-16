@@ -48,7 +48,7 @@ export default function Navbar() {
 
 
           <header className="after-red-bar h-24 bg-[var(--color-primary)] text-white">
-            <div className="container mx-auto py-4 px-3 flex items-center justify-between md:px-0">
+            <div className="container mx-auto px-3 flex items-center [&>*:not(:nth-child(3))]:py-4 justify-between md:px-0">
               {/* LEFT: Logo + Nombre */}
               <div className="flex items-center gap-3">
                 {branding?.Logo && (
@@ -133,7 +133,7 @@ export default function Navbar() {
 
               {/* RIGHT: Perfil (desktop) */}
               <div
-                className="hidden md:flex relative rounded-full bg-main"
+                className="hidden h-full-fill md:flex relative bg-main"
                 ref={dropdownRef}
               >
                 <button
@@ -141,10 +141,10 @@ export default function Navbar() {
                     e.stopPropagation();
                     setOpen(!open);
                   }}
-                  className="flex items-center gap-2 justify-center p-4 rounded-full text-black hover:scale-105 transition"
+                  className="flex items-center gap-2 justify-center p-4 rounded-full text-black"
                 >
                   <UserCircle size={22} className="text-white" />
-                  <ChevronDown size={12} className="text-white" />
+                  <ChevronDown size={22} className="text-white" />
                 </button>
 
                 {open && (

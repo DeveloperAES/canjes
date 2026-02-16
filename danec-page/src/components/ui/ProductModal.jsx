@@ -18,7 +18,7 @@ export default function ProductModal({ product, onClose }) {
           <div className="text-2xl font-bold mb-3">{`$${product.price}`}</div>
           <p className="leading-relaxed">{product.detail}</p>
           <div className="mt-auto flex gap-2">
-            <button className="py-2 px-4 rounded-md text-white bg-black" >Agregar al carrito</button>
+            {/* <button className="py-2 px-4 rounded-md text-white bg-black" >Agregar al carrito</button> */}
             <button onClick={onClose} className="bg-black text-white py-2 px-4 rounded-md border">Cerrar</button>
           </div>
         </div>

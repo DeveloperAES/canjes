@@ -1,16 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { toast } from "react-toastify";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { updateProfileApi } from "../api/userApi";
 import avatarPlaceholder from "../assets/react.svg";
+import { useBranding } from "../context/BrandingContext";
+import { useModal } from "../context/ModalContext";
+import { useLoading } from "../context/LoadingContext";
 
 export default function MiCuentaPage() {
   const { user, needsProfileUpdate, userDetails, refreshSession } = useAuth();
+  const navigate = useNavigate();
+  const { showModal } = useModal();
+  const { showLoading, hideLoading } = useLoading();
 
+  const { branding } = useBranding();
 
-
-
+  const bgForm = branding.formBackground;
 
   // Ensure details is an array
   const details = Array.isArray(userDetails?.Response?.oResponse) ? userDetails.Response.oResponse : [];
@@ -27,10 +32,11 @@ export default function MiCuentaPage() {
   useEffect(() => {
     // console.log("Location State in MiCuenta:", location.state);
     if (location.state?.from) {
-      toast.error("Te falta completar tus datos para continuar.", {
-        toastId: "profile-update", // evita duplicados
+      showModal({
+        type: 'error',
+        title: 'Faltan Datos',
+        message: 'Te falta completar tus datos para continuar.'
       });
-
     }
   }, [location.state]);
 
@@ -83,6 +89,15 @@ export default function MiCuentaPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // Validation for numeric and length constraints
+    if (name === "cedula" || name === "celular") {
+      if (!/^\d*$/.test(value) || value.length > 10) return;
+    }
+    if (name === "ruc") {
+      if (!/^\d*$/.test(value) || value.length > 13) return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -103,10 +118,51 @@ export default function MiCuentaPage() {
 
   const handleUpdate = async () => {
     if (!isUpdated && !termsAccepted) {
-      toast.error("Debes aceptar los términos y condiciones");
+      showModal({
+        type: 'error',
+        title: 'TÉRMINOS Y CONDICIONES',
+        message: 'Debes aceptar los términos y condiciones'
+      });
       return;
     }
 
+    // Exact length validations
+    if (formData.cedula.length !== 10) {
+      showModal({
+        type: 'error',
+        title: 'CAMPOS INCORRECTOS',
+        message: 'La cédula debe tener 10 dígitos'
+      });
+      return;
+    }
+    if (formData.celular.length !== 10) {
+      showModal({
+        type: 'error',
+        title: 'CAMPOS INCORRECTOS',
+        message: 'El celular debe tener 10 dígitos'
+      });
+      return;
+    }
+    if (formData.ruc.length !== 13) {
+      showModal({
+        type: 'error',
+        title: 'CAMPOS INCORRECTOS',
+        message: 'El RUC debe tener 13 dígitos'
+      });
+      return;
+    }
+
+    if (formData.perfil == "") {
+      showModal({
+        type: 'error',
+        title: 'CAMPOS INCORRECTOS',
+        message: 'El perfil es obligatorio'
+      });
+      return;
+    }
+
+
+    showLoading();
     try {
       const payload = {
         ...formData,
@@ -119,177 +175,180 @@ export default function MiCuentaPage() {
 
       await refreshSession(newToken); // Refresh data with new token (if any)
 
-      toast.success("Perfil actualizado correctamente");
+      const successTitle = !isUpdated ? "REGISTRO EXITOSO" : "ACTUALIZACIÓN EXITOSA";
+      const successMessage = !isUpdated
+        ? "Tu registro se ha completado correctamente."
+        : "Perfil actualizado correctamente";
+
+      showModal({
+        type: 'success',
+        title: successTitle,
+        message: successMessage,
+        onConfirm: () => navigate("/")
+      });
+
     } catch (error) {
       console.error(error);
-      toast.error("Error al actualizar el perfil");
+      showModal({
+        type: 'error',
+        title: 'ERROR',
+        message: 'Error al actualizar el perfil'
+      });
+    } finally {
+      hideLoading();
     }
   };
 
   return (
-    <div className="p-8">
-      <div className="max-w-[1100px] mx-auto bg-white rounded-md shadow-sm overflow-hidden">
-        <div className="flex flex-col md:flex-row">
+    <div className="min-h-screen py-10 px-4 flex items-center justify-center bg-cover bg-center bg-no-repeat" style={{
+      backgroundImage: bgForm ? `url(${bgForm})` : "none",
+    }}>
+      <div className="w-full max-w-[900px] bg-white p-8">
 
-          {/* Left */}
-          <div className="w-full md:w-1/3 p-8 bg-[url('../assets/login-bg.png')] bg-cover bg-center flex justify-center">
-            <div className="flex flex-col items-center">
-              <div className="h-36 w-36 rounded-full bg-white flex items-center justify-center shadow-md">
-                <img src={avatarPlaceholder} alt="avatar" className="w-28 h-28" />
-              </div>
+        <h1 className="text-[#f70030] text-3xl md:text-5xl font-bold text-center mb-10 md:mb-16">
+          {isUpdated ? "Mi cuenta" : "Completa tus datos"}
+        </h1>
 
-              <h3 className="mt-4 text-2xl font-bold text-white">
-                Apunta tus datos
-              </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 md:gap-y-8">
+          {/* Row 1 */}
+          <InputField
+            label="CÉDULA *"
+            name="cedula"
+            value={formData.cedula}
+            onChange={handleChange}
+          />
+          <InputField
+            label="NOMBRES *"
+            name="nombre"
+            value={formData.nombre}
+            onChange={handleChange}
+          />
 
-              <div className="mt-4 bg-amber-400 text-white px-4 py-1 rounded-full">
-                {completion}%
-              </div>
+          {/* Row 2 */}
+          <InputField
+            label="APELLIDOS *"
+            name="apellido"
+            value={formData.apellido}
+            onChange={handleChange}
+          />
+          <InputField
+            label="CELULAR *"
+            name="celular"
+            value={formData.celular}
+            onChange={handleChange}
+          />
 
-              {needsProfileUpdate && (
-                <p className="text-xs text-white/90 mt-2 text-center">
-                  *Debes completar tus datos para poder ver el contenido
-                </p>
-              )}
+          {/* Row 3 */}
+          <InputField
+            label="RUC*"
+            name="ruc"
+            value={formData.ruc}
+            onChange={handleChange}
+          />
+          <ReadOnlyField
+            label="RAZÓN SOCIAL"
+            value={formData.razon_social}
+          />
 
-              <button className="mt-6 px-4 py-2 bg-red-500 text-white rounded-md">
-                Cambiar Contraseña
-              </button>
-            </div>
+          {/* Row 4 */}
+          <ReadOnlyField
+            label="CÓDIGO DE CLIENTE"
+            value={formData.codigo_cliente}
+          />
+          <ReadOnlyField
+            label="AGENCIA"
+            value={formData.agencia}
+          />
+
+          {/* Row 5 */}
+          <ReadOnlyField
+            label="CANAL"
+            value={formData.canal}
+          />
+
+          <div className="flex flex-col gap-1 border-b-2 border-gray-50 py-1 transition-all focus-within:border-[#f70030]">
+            <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
+              PERFIL *
+            </label>
+            <select
+              name="perfil"
+              value={formData.perfil}
+              onChange={handleChange}
+              disabled={!formData.canal || isUpdated}
+              className="font-bold w-full outline-none text-black bg-white py-1 cursor-pointer appearance-none"
+            >
+              <option value="">Seleccione...</option>
+              {availablePerfiles.map(opt => (
+                <option key={opt.id} value={opt.option_value}>
+                  {opt.option_text}
+                </option>
+              ))}
+            </select>
           </div>
+        </div>
 
-          {/* Right */}
-          <div className="flex-1 p-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold">Datos de la cuenta</h2>
-                <div className="text-sm text-gray-500">* Campos Obligatorios</div>
-              </div>
-            </div>
+        {/* Checkbox */}
+        <div className="mt-10 md:mt-12 flex items-center justify-start gap-3">
+          {!isUpdated ? (
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="w-4 h-4 text-red-600 rounded focus:ring-red-500 border-gray-300"
+              />
+              <span className="text-gray-800 font-medium text-sm md:text-base cursor-pointer">
+                Acepto TÉRMINOS Y CONDICIONES y autorizo el USO DE DATOS
+              </span>
+            </label>
+          ) : (
+            <p className="text-sm text-gray-500">
+              Ya aceptó <span className="underline">TÉRMINOS Y CONDICIONES y autorizo el USO DE DATOS</span>
+            </p>
+          )}
+        </div>
 
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-              {Object.entries(formData)
-                .filter(([key]) => key !== "id_usuario" && key !== "updated")
-                .map(([key, value]) => {
-                  const readOnlyFields = ["codigo_cliente", "agencia", "canal", "perfil"];
-                  const isReadOnly = isUpdated && readOnlyFields.includes(key);
-
-                  // CANAL: Always read-only (just painted)
-                  if (key === "canal") {
-                    return (
-                      <Field
-                        key={key}
-                        label={key.toUpperCase()}
-                        name={key}
-                        value={value}
-                        onChange={handleChange}
-                        readOnly={true}
-                      />
-                    );
-                  }
-
-                  // PERFIL: Selectable ONLY if not updated, then Read-Only
-                  if (key === "perfil") {
-                    if (isUpdated) {
-                      return (
-                        <Field
-                          key={key}
-                          label={key.toUpperCase()}
-                          name={key}
-                          value={value}
-                          onChange={handleChange}
-                          readOnly={true}
-                        />
-                      );
-                    } else {
-                      return (
-                        <div key={key} className="py-2 border-b border-gray-100">
-                          <label className="text-sm text-gray-500 mb-1 block">{key.toUpperCase()} *</label>
-                          <select
-                            name={key}
-                            value={value}
-                            onChange={handleChange}
-                            disabled={!formData.canal}
-                            className="font-bold w-full outline-none text-gray-800 bg-white focus:border-b-2 focus:border-red-500 transition-all disabled:text-gray-400"
-                          >
-                            <option value="">Seleccione...</option>
-                            {availablePerfiles.map(opt => (
-                              <option key={opt.id} value={opt.option_value}>
-                                {opt.option_text}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      );
-                    }
-                  }
-
-                  return (
-                    <Field
-                      key={key}
-                      label={key.toUpperCase()}
-                      name={key}
-                      value={value}
-                      onChange={handleChange}
-                      readOnly={isReadOnly}
-                    />
-                  );
-                })}
-            </div>
-
-            <div className="mt-6">
-              {!isUpdated ? (
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                    className="w-4 h-4 text-red-600 rounded focus:ring-red-500 border-gray-300"
-                  />
-                  <span className="text-sm text-gray-700 underline">
-                    Acepto TÉRMINOS Y CONDICIONES JUNTO CON EL TRATAMIENTO Y USO DE DATOS.
-                  </span>
-                </label>
-              ) : (
-                <p className="text-sm text-gray-500">
-                  Ya aceptó <span className="underline">TÉRMINOS Y CONDICIONES JUNTO CON EL TRATAMIENTO Y USO DE DATOS.</span>
-                </p>
-              )}
-            </div>
-
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={handleUpdate}
-                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
-              >
-                Actualizar
-              </button>
-            </div>
-          </div>
-
+        {/* Action Button */}
+        <div className="mt-10 md:mt-12 flex justify-center">
+          <button
+            onClick={handleUpdate}
+            className="bg-[#f70030] text-white font-bold py-3.5 px-20 rounded-full text-xl shadow-lg hover:brightness-110 active:scale-[0.98] transition-all uppercase tracking-wide"
+          >
+            Continuar
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-function Field({ label, name, value, onChange, readOnly }) {
+function InputField({ label, name, value, onChange }) {
   return (
-    <div className="py-2 border-b border-gray-100">
-      <label className="text-sm text-gray-500 mb-1 block">{label} *</label>
+    <div className="flex flex-col gap-1 border-b-2 border-gray-100 py-1 transition-all focus-within:border-[#f70030]">
+      <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
+        {label}
+      </label>
       <input
         type="text"
         name={name}
         value={value}
         onChange={onChange}
-        disabled={readOnly}
-        readOnly={readOnly}
-        className={`font-bold w-full outline-none transition-all ${readOnly
-          ? "text-gray-400 bg-transparent cursor-not-allowed"
-          : "text-gray-800 placeholder-gray-300 focus:border-b-2 focus:border-red-500"
-          }`}
-        placeholder="-"
+        className="font-bold w-full outline-none text-black bg-transparent py-1"
+        placeholder="..."
       />
+    </div>
+  );
+}
+
+function ReadOnlyField({ label, value }) {
+  return (
+    <div className="flex flex-col gap-1 py-1">
+      <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
+        {label}
+      </label>
+      <div className="font-bold text-black py-1 uppercase truncate">
+        {value || "-"}
+      </div>
     </div>
   );
 }

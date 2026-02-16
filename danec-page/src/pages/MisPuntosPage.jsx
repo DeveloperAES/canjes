@@ -4,10 +4,13 @@ import MonthlySummary from "../components/ui/puntos/MonthlySummary"
 import PointsSection from "../components/ui/puntos/PointsSection"
 import { useState, useEffect } from "react";
 import { getUserDetailedPointsApi } from "../api/userApi";
+import { useLoading } from "../context/LoadingContext";
 
 const PointsPage = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { showLoading, hideLoading } = useLoading();
+
   const [error, setError] = useState(null);
 
   const [selectedYear, setSelectedYear] = useState("");
@@ -16,6 +19,7 @@ const PointsPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        showLoading();
         setLoading(true);
         const response = await getUserDetailedPointsApi();
         if (response.Success && response.Response && response.Response.oResponse) {
@@ -38,6 +42,7 @@ const PointsPage = () => {
         setError("Error al cargar los puntos detallados");
       } finally {
         setLoading(false);
+        hideLoading();
       }
     };
 

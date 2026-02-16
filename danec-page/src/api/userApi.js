@@ -52,6 +52,11 @@ export async function getUserCartApi() {
   return data;
 }
 
+export async function clearCartApi() {
+  const { data } = await axiosClient.delete("/cart/clear");
+  return data;
+}
+
 //Exchange
 export async function postExchangeApi(payload) {
   const { data } = await axiosClient.post("/exchange", payload);

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { postExchangeApi } from "../../api/userApi";
-import { toast } from "react-toastify";
+import { useModal } from "../../context/ModalContext";
 
 export default function ExchangeModal({ isOpen, onClose, onSuccess }) {
+    const { showModal } = useModal();
     const [formData, setFormData] = useState({
         Using: null,
         Email: "",
@@ -36,7 +37,11 @@ export default function ExchangeModal({ isOpen, onClose, onSuccess }) {
         const emptyFields = requiredFields.filter(field => !formData[field]);
 
         if (emptyFields.length > 0) {
-            toast.error("Por favor completa todos los campos requeridos");
+            showModal({
+                type: 'error',
+                title: 'CAMPOS INCOMPLETOS',
+                message: 'Por favor completa todos los campos requeridos para el envío.'
+            });
             return;
         }
 
@@ -44,14 +49,25 @@ export default function ExchangeModal({ isOpen, onClose, onSuccess }) {
         try {
             console.log("Sending exchange data:", formData);
             await postExchangeApi(formData);
-            toast.success("¡Canje realizado exitosamente!");
-            onSuccess();
-            onClose();
+
+            showModal({
+                type: 'success',
+                title: '¡CANJE EXITOSO!',
+                message: 'Tu canje se ha procesado correctamente. Pronto recibirás noticias nuestras.',
+                onConfirm: () => {
+                    onSuccess();
+                    onClose();
+                }
+            });
         } catch (error) {
             console.error("Exchange error:", error);
-            console.error("Error response:", error?.response);
             const msg = error?.response?.data?.Response?.sRetorno || error?.response?.data?.message || "Error al realizar el canje";
-            toast.error(msg);
+
+            showModal({
+                type: 'error',
+                title: 'ERROR EN EL CANJE',
+                message: msg
+            });
         } finally {
             setLoading(false);
         }

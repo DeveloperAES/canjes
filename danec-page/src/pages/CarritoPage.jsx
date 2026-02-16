@@ -1,33 +1,34 @@
 import { ButtonNavigate } from "../components/ui/buttons/ButtonNavigation";
-import { postUserCartApi } from "../api/userApi";
+import { postUserCartApi, clearCartApi } from "../api/userApi";
 import { getCatalog } from "../api/productsApi";
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "../context/AuthContext";
-import { toast } from "react-toastify";
 import ExchangeModal from "../components/ui/ExchangeModal";
+import { useModal } from "../context/ModalContext";
+import { useLoading } from "../context/LoadingContext";
+import { Trash2 } from "lucide-react";
 
 export default function CarritoPage() {
-
-
     const { userPoints, refreshSession, cartTotal, cart } = useAuth();
-    // console.log('ver puntos', userPoints);
+    const { showModal } = useModal();
+    const { showLoading, hideLoading } = useLoading();
 
     const totalPoints = userPoints?.Response?.oResponse[0]?.total || 0;
     const effectivePoints = totalPoints - (cartTotal || 0);
 
     const [catalog, setCatalog] = useState([]);
-    const [loadingCatalog, setLoadingCatalog] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         (async () => {
+            showLoading();
             try {
                 const data = await getCatalog();
                 setCatalog(data.Response.oResponse || []);
             } catch (error) {
                 console.error("Error fetching catalog", error);
             } finally {
-                setLoadingCatalog(false);
+                hideLoading();
             }
         })();
     }, []);
@@ -41,56 +42,91 @@ export default function CarritoPage() {
                 title: product?.name || "Producto no disponible",
                 image: product?.image || "",
                 unitPrice: product?.price || 0,
-                // If item.Total is available we can use it, or calculate
             };
         });
     }, [cart, catalog]);
 
 
     const handleUpdateQuantity = async (productId, delta, unitPrice, currentQuantity) => {
-        console.log('=== handleUpdateQuantity ===');
-        console.log('productId:', productId);
-        console.log('delta:', delta);
-        console.log('unitPrice:', unitPrice);
-        console.log('currentQuantity:', currentQuantity);
-        console.log('effectivePoints:', effectivePoints);
-
         if (delta > 0) {
-            // Check if we have enough effective points for one more item
             if (effectivePoints < unitPrice) {
-                // console.log('❌ Insufficient points');
-                toast.error(`No tienes suficientes puntos para agregar más (${effectivePoints} disponibles, necesitas ${unitPrice}).`);
+                showModal({
+                    type: 'error',
+                    title: 'Puntos Insuficientes',
+                    message: `No tienes suficientes puntos para agregar más. Tienes ${effectivePoints} disponibles y necesitas ${unitPrice} puntos.`
+                });
                 return;
             }
-            console.log('✅ Sufficient points, proceeding...');
         }
 
         const newQuantity = currentQuantity + delta;
 
-        // Allow quantity to be 0 (which should delete the item from cart)
-        if (newQuantity < 0) {
-            // console.log('⚠️ Quantity would be < 0, skipping');
-            return;
-        }
+        if (newQuantity < 0) return;
 
+        showLoading();
         try {
-            // console.log('Calling API with:', { product: productId, quantity: newQuantity });
-            const response = await postUserCartApi({ product: productId, quantity: newQuantity });
-            // console.log('API Response:', response);
+            const res = await postUserCartApi({ product: productId, quantity: newQuantity });
+            
+            // Check for business logic errors even if request was successful
+            const sRetorno = res?.Response?.sRetorno || "";
+            if (sRetorno.toLowerCase().includes("no se puede") || sRetorno.toLowerCase().includes("supera el stock")) {
+                showModal({
+                    type: 'error',
+                    title: 'Aviso de Stock',
+                    message: sRetorno
+                });
+                return;
+            }
+
             await refreshSession();
-            // console.log('Session refreshed');
 
             if (newQuantity === 0) {
-                toast.success("Producto eliminado del carrito");
-            } else {
-                toast.success("Carrito actualizado");
+                showModal({
+                    type: 'success',
+                    title: 'PRODUCTO ELIMINADO',
+                    message: 'El producto ha sido removido de tu carrito correctamente.'
+                });
             }
         } catch (error) {
-            // console.error('❌ API Error:', error);
-            // console.error('Error response:', error?.response);
-            const msg = error?.response?.data?.message || error?.response?.data?.response?.sRetorno || "Error al actualizar carrito";
-            toast.error(msg);
+            const msg = error?.response?.data?.Response?.sRetorno || error?.response?.data?.message || "Error al actualizar carrito";
+            showModal({
+                type: 'error',
+                title: 'Error al actualizar',
+                message: msg
+            });
+        } finally {
+            hideLoading();
         }
+    };
+
+    const handleClearCart = async () => {
+        showModal({
+            type: 'confirm',
+            title: '¿VACIAR CARRITO?',
+            message: '¿Estás seguro de que deseas eliminar todos los productos del carrito?',
+            onConfirm: async () => {
+                showLoading();
+                try {
+                    const res = await clearCartApi();
+                    await refreshSession();
+                    
+                    showModal({
+                        type: 'success',
+                        title: 'CARRITO LIMPIADO',
+                        message: res?.Response?.sRetorno || 'Tu carrito ha sido vaciado correctamente.'
+                    });
+                } catch (error) {
+                    console.error(error);
+                    showModal({
+                        type: 'error',
+                        title: 'ERROR',
+                        message: 'No se pudo limpiar el carrito en este momento.'
+                    });
+                } finally {
+                    hideLoading();
+                }
+            }
+        });
     };
 
 
@@ -99,11 +135,20 @@ export default function CarritoPage() {
     return (
         <section className="w-full py-4">
             <div className="container mx-auto px-3 bg-white  shadow-xl shadow-blue-200">
-                <div className="w-full h-full bg-main flex flex-col gap-4">
-                    <p className="text-white text-center text-xl py-4">
-                        CARRITO
+                <div className="w-full h-full bg-main flex items-center justify-between px-6 py-4">
+                    <p className="text-white text-center text-xl font-bold uppercase tracking-widest">
+                        Carrito de Compras
                     </p>
-
+                    
+                    {enrichedCart.length > 0 && (
+                        <button 
+                            onClick={handleClearCart}
+                            className="flex items-center gap-2 bg-white text-[#f70030] px-5 py-2.5 rounded-xl shadow-lg shadow-black/10 hover:bg-gray-50 active:scale-95 transition-all text-[11px] font-black uppercase tracking-tight"
+                        >
+                            <Trash2 size={15} />
+                            Vaciar Carrito
+                        </button>
+                    )}
                 </div>
                 <div className="w-full h-full">
                     {
@@ -130,10 +175,11 @@ export default function CarritoPage() {
                     ) : (
                         <>
                             {/* Table Header */}
-                            <div className="hidden md:flex justify-between border-b pb-2 font-bold text-gray-700">
-                                <span className="w-1/2">PRODUCTO</span>
-                                <span className="w-1/4 text-center">PUNTOS</span>
+                            <div className="hidden md:flex justify-between border-b pb-2 font-bold text-gray-700 uppercase tracking-wider">
+                                <span className="w-1/3">PRODUCTO</span>
+                                <span className="w-1/6 text-center">PUNTOS UNIT.</span>
                                 <span className="w-1/4 text-center">CANTIDAD</span>
+                                <span className="w-1/6 text-center">TOTAL PUNTOS</span>
                             </div>
 
                             {/* Cart Items */}
@@ -142,17 +188,18 @@ export default function CarritoPage() {
                                     <div key={item.Id} className="flex flex-col md:flex-row items-center justify-between border-b py-4 gap-4">
 
                                         {/* Product Info */}
-                                        <div className="flex items-center gap-4 w-full md:w-1/2">
+                                        <div className="flex items-center gap-4 w-full md:w-1/3">
                                             <img
                                                 src={item.image}
                                                 alt={item.title}
                                                 className="w-20 h-20 object-contain border rounded"
                                             />
-                                            <span className="font-semibold uppercase">{item.title}</span>
+                                            <span className="font-semibold uppercase text-sm">{item.title}</span>
                                         </div>
 
-                                        {/* Points */}
-                                        <div className="w-full md:w-1/4 text-center font-bold text-gray-700">
+                                        {/* Points Unit */}
+                                        <div className="w-full md:w-1/6 text-center font-bold text-gray-700">
+                                            <span className="md:hidden text-xs text-gray-400 block">UNITARIO</span>
                                             {item.unitPrice}
                                         </div>
 
@@ -171,6 +218,12 @@ export default function CarritoPage() {
                                             >
                                                 +
                                             </button>
+                                        </div>
+
+                                        {/* Total Points per Item */}
+                                        <div className="w-full md:w-1/6 text-center font-black text-red-600">
+                                            <span className="md:hidden text-xs text-gray-400 block text-center">TOTAL</span>
+                                            {item.unitPrice * item.Quantity}
                                         </div>
                                     </div>
                                 ))}

@@ -1,10 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { loginApi, getProfileApi } from "../api/authApi";
 import { getUserDetailsApi, getUserPointsApi, getUserCartApi } from "../api/userApi";
+import { useBranding } from "./BrandingContext";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+  const { refreshBranding } = useBranding();
   const [user, setUser] = useState(null); // respuesta completa del /user
   const [userDetails, setUserDetails] = useState(null); // respuesta completa del /user/form_detail
   const [userPoints, setUserPoints] = useState(null); // respuesta completa del /user/form_detail
@@ -120,6 +122,7 @@ export function AuthProvider({ children }) {
       const me = await getProfileApi();
       const userDetails = await getUserDetailsApi();
       const userPoints = await getUserPointsApi();
+      
       setUser(me);
       setUserDetails(userDetails);
       setUserPoints(userPoints);
@@ -134,11 +137,12 @@ export function AuthProvider({ children }) {
       }
       const total = currentCart.reduce((acc, item) => acc + (item.Total || 0), 0);
 
-      setUser(me);
-      setUserDetails(userDetails);
-      setUserPoints(userPoints);
       setCart(currentCart);
       setCartTotal(total);
+
+      // Seteamos el branding al iniciar sesión satisfactoriamente
+      await refreshBranding();
+
       return true;
     } catch (err) {
       console.error(err);

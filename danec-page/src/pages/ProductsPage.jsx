@@ -4,8 +4,11 @@ import { postUserCartApi } from "../api/userApi";
 import ProductCard from "../components/ui/ProductCard";
 import ProductModal from "../components/ui/ProductModal";
 import FiltersSidebar from "../components/ui/FiltersSidebar";
+import QuantityModal from "../components/ui/QuantityModal";
 import { useAuth } from "../context/AuthContext";
-import { toast } from "react-toastify";
+import { useModal } from "../context/ModalContext";
+import { useLoading } from "../context/LoadingContext";
+import { Filter } from "lucide-react";
 
 import { ButtonNavigateCart } from "../components/ui/buttons/ButtonCart";
 
@@ -14,9 +17,12 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [productToQuantity, setProductToQuantity] = useState(null);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
 
   const { userPoints, refreshSession, cartTotal } = useAuth();
-  // console.log('ver puntos', userPoints);
+  const { showModal } = useModal();
+  const { showLoading, hideLoading } = useLoading();
 
   const totalPoints = userPoints?.Response?.oResponse[0]?.total || 0;
   const effectivePoints = totalPoints - (cartTotal || 0);
@@ -32,21 +38,21 @@ export default function ProductsPage() {
 
   useEffect(() => {
     (async () => {
+      showLoading();
       setLoading(true);
       try {
         const data = await getCatalog();
         setProducts(data.Response.oResponse || []);
-        // console.log(data.Response.oResponse);
       } catch (err) {
         console.error(err);
         setError("No se pudieron cargar los productos");
       } finally {
         setLoading(false);
+        hideLoading();
       }
     })();
   }, []);
 
-  // Compute available categories and price range from products
   const availableCategories = [...new Set(products.map((p) => p.category))].filter(Boolean);
   const maxProductPrice = Math.max(...products.map(p => p.price), 0);
   const minProductPrice = Math.min(...products.map(p => p.price), 0);
@@ -55,54 +61,63 @@ export default function ProductsPage() {
     setFilters((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Filter and Sort Logic
   const filteredProducts = products.filter((p) => {
-    // Search
     if (filters.search) {
       const query = filters.search.toLowerCase();
       if (!p.name.toLowerCase().includes(query)) return false;
     }
-
-    // Categories
     if (filters.categories.length > 0) {
       if (!filters.categories.includes(p.category)) return false;
     }
-
-    // Price
     if (filters.minPrice) {
       if (p.price < parseFloat(filters.minPrice)) return false;
     }
     if (filters.maxPrice) {
       if (p.price > parseFloat(filters.maxPrice)) return false;
     }
-
     return true;
   }).sort((a, b) => {
-    if (filters.sort === "price_asc") {
-      return a.price - b.price;
-    }
-    if (filters.sort === "price_desc") {
-      return b.price - a.price;
-    }
+    if (filters.sort === "price_asc") return a.price - b.price;
+    if (filters.sort === "price_desc") return b.price - a.price;
     return 0;
   });
 
-  const handleAdd = async (product) => {
-    // const currentPoints = point || 0; 
-    // Usamos effectivePoints para validar lo real disponible
-    if (effectivePoints < product.price) {
-      toast.error(`No tienes suficientes puntos (${effectivePoints} disponibles) para agregar este producto.`);
-      return;
-    }
+  const handleAdd = (product) => {
+    setProductToQuantity(product);
+  };
 
+  const handleConfirmAdd = async (product, quantity) => {
+    showLoading();
     try {
-      await postUserCartApi({ product: product.id, quantity: 1 });
-      toast.success("Producto agregado correctamente");
+      const res = await postUserCartApi({ product: product.id, quantity: quantity });
+
+      // Check for business logic errors in response
+      const sRetorno = res?.Response?.sRetorno || "";
+      if (sRetorno.toLowerCase().includes("supera el stock")) {
+        showModal({
+          type: 'error',
+          title: 'Aviso de Stock',
+          message: sRetorno
+        });
+        return;
+      }
+
+      showModal({
+        type: 'success',
+        title: 'PRODUCTO AGREGADO',
+        message: `${quantity} unidad(es) de "${product.name}" añadidas al carrito.`
+      });
       await refreshSession();
     } catch (error) {
       console.error(error);
       const msg = error?.response?.data?.message || "Error al agregar producto";
-      toast.error(msg);
+      showModal({
+        type: 'error',
+        title: 'ERROR',
+        message: msg
+      });
+    } finally {
+      hideLoading();
     }
   };
 
@@ -112,46 +127,63 @@ export default function ProductsPage() {
 
   const closeModal = () => setSelectedProduct(null);
 
-  if (loading) return <div className="p-6">Cargando productos...</div>;
+  if (loading) return null; // Loading handler is global
   if (error) return <div className="p-6 text-red-600">{error}</div>;
 
   return (
-    <div className="p-6 flex gap-4">
-      <FiltersSidebar
-        filters={filters}
-        onChange={handleFilterChange}
-        categories={availableCategories}
-        priceRange={{ min: minProductPrice, max: maxProductPrice }}
-      />
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="flex flex-col lg:flex-row gap-8">
 
-      <div className="flex-1">
-        <h2 className="mb-3">Productos</h2>
-        <div className="flex gap-3 justify-center items-center">
-          <ButtonNavigateCart linkPage="/carrito"
-            text="Carrito"
-          />
-          {
-            (effectivePoints !== undefined && effectivePoints !== null) ? (
-              <span className="font-bold">Puntos disponibles: {effectivePoints}</span>
-            ) : (
-              <span className="font-bold">Puntos disponibles: 0</span>
-            )
-          }
+        <FiltersSidebar
+          isOpen={isFiltersOpen}
+          onClose={() => setIsFiltersOpen(false)}
+          filters={filters}
+          onChange={handleFilterChange}
+          categories={availableCategories}
+          priceRange={{ min: minProductPrice, max: maxProductPrice }}
+        />
 
-        </div>
+        <div className="flex-1">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+            <div>
+              <h1 className="text-3xl font-black text-gray-900">Productos</h1>
+            </div>
 
-        {filteredProducts.length === 0 ? (
-          <div className="text-gray-500">No se encontraron productos con estos filtros.</div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredProducts.map((p) => (
-              <ProductCard key={p.id} product={p} onAdd={handleAdd} onView={handleView} />
-            ))}
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <button
+                onClick={() => setIsFiltersOpen(true)}
+                className="lg:hidden flex-1 flex items-center justify-center gap-2 bg-white border border-gray-200 p-3 rounded-xl font-bold text-gray-700 shadow-sm active:scale-95 transition-all"
+              >
+                <Filter size={18} />
+                FILTROS
+              </button>
+            </div>
           </div>
-        )}
+
+          {filteredProducts.length === 0 ? (
+            <div className="bg-gray-50 rounded-3xl p-20 text-center border-2 border-dashed border-gray-100">
+              <div className="text-gray-400 font-bold text-xl">Sin resultados</div>
+              <p className="text-gray-400 mt-2">Intenta ajustar tus filtros de búsqueda</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+              {filteredProducts.map((p) => (
+                <ProductCard key={p.id} product={p} onAdd={handleAdd} onView={handleView} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {selectedProduct && <ProductModal product={selectedProduct} onClose={closeModal} />}
+
+      <QuantityModal
+        isOpen={!!productToQuantity}
+        onClose={() => setProductToQuantity(null)}
+        product={productToQuantity}
+        onConfirm={handleConfirmAdd}
+        availablePoints={effectivePoints}
+      />
     </div>
   );
 }

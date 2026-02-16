@@ -8,7 +8,7 @@
 *,
 :after,
 :before {
-    border: 0 solid #e5e7eb;
+    /* border: 0 solid #e5e7eb; */
     box-sizing: border-box;
 }
 
@@ -132,4 +132,10 @@
     background: black;
     cursor: pointer;
     z-index: 20;
+}
+
+
+.h-full-fill{
+    height: stretch;
+    height: -webkit-fill-available;
 }

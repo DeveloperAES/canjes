@@ -5,8 +5,9 @@ import { getUserPointsApi } from "../api/userApi";
 import { Splide, SplideSlide, SplideTrack } from "@splidejs/react-splide";
 import "@splidejs/react-splide/css";
 import { useEffect, useState } from "react";
-
 import TablePuntos from "../components/ui/TablePuntos";
+
+import PointsCards from "../components/ui/PointsCards";
 
 export default function HomePage() {
   const { branding } = useBranding();
@@ -40,9 +41,12 @@ export default function HomePage() {
   }, []);
 
   return (
-    <section className="w-full flex flex-col gap-3">
-      {/* Carrusel */}
-      <div className="w-full h-full">
+    <section className="w-full flex flex-col gap-6 md:gap-12 p-4 md:py-12 md:px-28">
+      {/* Tarjetas de Puntos y Saludo */}
+      <PointsCards loading={loading} error={error} data={pointsData} />
+
+      {/* Carrusel (Banner) */}
+      <div className="w-full h-full rounded-[30px] border border-gray-100 overflow-hidden shadow-sm">
         <Splide
           hasTrack={false}
           aria-label="Carrusel de banners"
@@ -62,7 +66,7 @@ export default function HomePage() {
                 <img
                   src={banner.Src}
                   alt={banner.Alt}
-                  className="w-full object-cover"
+                  className="w-full h-auto object-cover rounded-[30px]"
                 />
               </SplideSlide>
             ))}
@@ -79,8 +83,8 @@ export default function HomePage() {
         </Splide>
       </div>
 
-      {/* Tabla visual */}
-      <TablePuntos loading={loading} error={error} data={pointsData} />
+       {/* Tabla visual */}
+      {/* <TablePuntos loading={loading} error={error} data={pointsData} /> */}
     </section>
   );
 }
