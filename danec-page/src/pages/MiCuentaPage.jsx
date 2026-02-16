@@ -152,6 +152,16 @@ export default function MiCuentaPage() {
       return;
     }
 
+    if (formData.perfil == "") {
+      showModal({
+        type: 'error',
+        title: 'CAMPOS INCORRECTOS',
+        message: 'El perfil es obligatorio'
+      });
+      return;
+    }
+
+
     showLoading();
     try {
       const payload = {
@@ -166,8 +176,8 @@ export default function MiCuentaPage() {
       await refreshSession(newToken); // Refresh data with new token (if any)
 
       const successTitle = !isUpdated ? "REGISTRO EXITOSO" : "ACTUALIZACIÓN EXITOSA";
-      const successMessage = !isUpdated 
-        ? "Tu registro se ha completado correctamente." 
+      const successMessage = !isUpdated
+        ? "Tu registro se ha completado correctamente."
         : "Perfil actualizado correctamente";
 
       showModal({
@@ -176,7 +186,7 @@ export default function MiCuentaPage() {
         message: successMessage,
         onConfirm: () => navigate("/")
       });
-      
+
     } catch (error) {
       console.error(error);
       showModal({
@@ -194,68 +204,68 @@ export default function MiCuentaPage() {
       backgroundImage: bgForm ? `url(${bgForm})` : "none",
     }}>
       <div className="w-full max-w-[900px] bg-white p-8">
-        
+
         <h1 className="text-[#f70030] text-3xl md:text-5xl font-bold text-center mb-10 md:mb-16">
           {isUpdated ? "Mi cuenta" : "Completa tus datos"}
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 md:gap-y-8">
           {/* Row 1 */}
-          <InputField 
-            label="CÉDULA *" 
-            name="cedula" 
-            value={formData.cedula} 
-            onChange={handleChange} 
+          <InputField
+            label="CÉDULA *"
+            name="cedula"
+            value={formData.cedula}
+            onChange={handleChange}
           />
-          <InputField 
-            label="NOMBRES *" 
-            name="nombre" 
-            value={formData.nombre} 
-            onChange={handleChange} 
+          <InputField
+            label="NOMBRES *"
+            name="nombre"
+            value={formData.nombre}
+            onChange={handleChange}
           />
 
           {/* Row 2 */}
-          <InputField 
-            label="APELLIDOS *" 
-            name="apellido" 
-            value={formData.apellido} 
-            onChange={handleChange} 
+          <InputField
+            label="APELLIDOS *"
+            name="apellido"
+            value={formData.apellido}
+            onChange={handleChange}
           />
-          <InputField 
-            label="CELULAR *" 
-            name="celular" 
-            value={formData.celular} 
-            onChange={handleChange} 
+          <InputField
+            label="CELULAR *"
+            name="celular"
+            value={formData.celular}
+            onChange={handleChange}
           />
 
           {/* Row 3 */}
-          <InputField 
-            label="RUC*" 
-            name="ruc" 
-            value={formData.ruc} 
-            onChange={handleChange} 
+          <InputField
+            label="RUC*"
+            name="ruc"
+            value={formData.ruc}
+            onChange={handleChange}
           />
-          <ReadOnlyField 
-            label="RAZÓN SOCIAL" 
-            value={formData.razon_social} 
+          <ReadOnlyField
+            label="RAZÓN SOCIAL"
+            value={formData.razon_social}
           />
 
           {/* Row 4 */}
-          <ReadOnlyField 
-            label="CÓDIGO DE CLIENTE" 
-            value={formData.codigo_cliente} 
+          <ReadOnlyField
+            label="CÓDIGO DE CLIENTE"
+            value={formData.codigo_cliente}
           />
-          <ReadOnlyField 
-            label="AGENCIA" 
-            value={formData.agencia} 
+          <ReadOnlyField
+            label="AGENCIA"
+            value={formData.agencia}
           />
 
           {/* Row 5 */}
-          <ReadOnlyField 
-            label="CANAL" 
-            value={formData.canal} 
+          <ReadOnlyField
+            label="CANAL"
+            value={formData.canal}
           />
-          
+
           <div className="flex flex-col gap-1 border-b-2 border-gray-50 py-1 transition-all focus-within:border-[#f70030]">
             <label className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-wider">
               PERFIL *
@@ -280,22 +290,22 @@ export default function MiCuentaPage() {
         {/* Checkbox */}
         <div className="mt-10 md:mt-12 flex items-center justify-start gap-3">
           {!isUpdated ? (
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                    className="w-4 h-4 text-red-600 rounded focus:ring-red-500 border-gray-300"
-                  />
-                  <span className="text-gray-800 font-medium text-sm md:text-base cursor-pointer">
-                    Acepto TÉRMINOS Y CONDICIONES y autorizo el USO DE DATOS
-                  </span>
-                </label>
-              ) : (
-                <p className="text-sm text-gray-500">
-                  Ya aceptó <span className="underline">TÉRMINOS Y CONDICIONES y autorizo el USO DE DATOS</span>
-                </p>
-              )}
+            <label className="flex items-center space-x-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="w-4 h-4 text-red-600 rounded focus:ring-red-500 border-gray-300"
+              />
+              <span className="text-gray-800 font-medium text-sm md:text-base cursor-pointer">
+                Acepto TÉRMINOS Y CONDICIONES y autorizo el USO DE DATOS
+              </span>
+            </label>
+          ) : (
+            <p className="text-sm text-gray-500">
+              Ya aceptó <span className="underline">TÉRMINOS Y CONDICIONES y autorizo el USO DE DATOS</span>
+            </p>
+          )}
         </div>
 
         {/* Action Button */}

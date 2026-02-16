@@ -90,16 +90,16 @@ export default function ProductsPage() {
     showLoading();
     try {
       const res = await postUserCartApi({ product: product.id, quantity: quantity });
-      
+
       // Check for business logic errors in response
       const sRetorno = res?.Response?.sRetorno || "";
       if (sRetorno.toLowerCase().includes("supera el stock")) {
-          showModal({
-              type: 'error',
-              title: 'Aviso de Stock',
-              message: sRetorno
-          });
-          return;
+        showModal({
+          type: 'error',
+          title: 'Aviso de Stock',
+          message: sRetorno
+        });
+        return;
       }
 
       showModal({
@@ -133,7 +133,7 @@ export default function ProductsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex flex-col lg:flex-row gap-8">
-        
+
         <FiltersSidebar
           isOpen={isFiltersOpen}
           onClose={() => setIsFiltersOpen(false)}
@@ -148,9 +148,9 @@ export default function ProductsPage() {
             <div>
               <h1 className="text-3xl font-black text-gray-900">Productos</h1>
             </div>
-            
+
             <div className="flex items-center gap-3 w-full sm:w-auto">
-              <button 
+              <button
                 onClick={() => setIsFiltersOpen(true)}
                 className="lg:hidden flex-1 flex items-center justify-center gap-2 bg-white border border-gray-200 p-3 rounded-xl font-bold text-gray-700 shadow-sm active:scale-95 transition-all"
               >
@@ -176,8 +176,8 @@ export default function ProductsPage() {
       </div>
 
       {selectedProduct && <ProductModal product={selectedProduct} onClose={closeModal} />}
-      
-      <QuantityModal 
+
+      <QuantityModal
         isOpen={!!productToQuantity}
         onClose={() => setProductToQuantity(null)}
         product={productToQuantity}

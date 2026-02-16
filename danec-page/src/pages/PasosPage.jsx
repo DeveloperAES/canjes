@@ -17,8 +17,8 @@ export default function PasosPage() {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    const numLeaves = isMobile 
-        ? Math.max(0, rawBanners.length - 1) 
+    const numLeaves = isMobile
+        ? Math.max(0, rawBanners.length - 1)
         : Math.ceil(rawBanners.length / 2);
 
     const handlePrev = () => {
@@ -88,7 +88,7 @@ export default function PasosPage() {
     }, [flippedCount, rawBanners.length, isMobile]);
 
     return (
-        <section className="w-full h-full min-h-[calc(100vh-96px)] flex flex-col justify-center md:justify-start items-center bg-[#f0f0f0] relative overflow-hidden">
+        <section className="w-full h-full min-h-[calc(100vh-96px)] flex flex-col justify-center md:justify-center items-center bg-[#f0f0f0] relative overflow-hidden">
 
             {/* Area de visualización con Zoom */}
             <div

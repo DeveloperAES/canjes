@@ -5,6 +5,8 @@ import { useAuth } from "../../context/AuthContext";
 export default function PointsCards({ loading = false, error = "", data }) {
   const { profile } = useAuth();
 
+  console.log('profile', profile.ExtraInfo.name);
+
   const row =
     data?.oResponse?.[0] ??
     data?.Response?.oResponse?.[0] ??
@@ -67,16 +69,17 @@ export default function PointsCards({ loading = false, error = "", data }) {
   }
 
   if (error) {
-     return <div className="text-red-500 font-medium">{error}</div>;
+    return <div className="text-red-500 font-medium">{error}</div>;
   }
 
   return (
     <div className="w-full flex flex-col gap-6">
-      
+
       {/* Header: Saludo y Puntos Totales */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <h1 className="text-3xl font-bold text-[#f70030]">
-          ¡Hola, {(profile?.NameCanonical ?? profile?.Nombres ?? "-").split(" ")[2] || "-"}!
+          {/* ¡Hola, {(profile?.NameCanonical ?? profile?.Nombres ?? "-").split(" ")[2] || "-"}! */}
+          ¡Hola, {profile?.ExtraInfo?.name || "usuario"}!
         </h1>
         <div className="text-xl font-bold">
           Tienes {row?.total ?? 0} puntos

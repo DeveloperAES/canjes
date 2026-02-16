@@ -9,6 +9,7 @@ export default function BienvenidoPage() {
   const navigate = useNavigate();
   const info = profile?.ExtraInfo;
 
+
   const { branding } = useBranding();
 
   const bgWelcome = branding.bannerWelcome;
@@ -27,11 +28,11 @@ export default function BienvenidoPage() {
           backgroundImage: bgWelcome ? `url(${bgWelcome})` : "none",
         }}
       ></span>
-      
+
       {/* Contenido encima */}
       <div className="h-full container mx-auto flex items-center justify-end relative px-6">
         <div className="w-full md:w-1/2 flex flex-col justify-center items-center text-center">
-          
+
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-[#f70030] mb-2">
             ¡Hola, {info?.name || "usuario"}!
           </h1>
@@ -44,9 +45,9 @@ export default function BienvenidoPage() {
             Ayúdanos a completar tus datos
           </p>
 
-          <ButtonNavigate 
-            linkPage="/mi-cuenta" 
-            text="CONTINUAR" 
+          <ButtonNavigate
+            linkPage="/mi-cuenta"
+            text="CONTINUAR"
             className="rounded-full px-12 py-3 text-2xl bg-[#f70030]"
           />
         </div>

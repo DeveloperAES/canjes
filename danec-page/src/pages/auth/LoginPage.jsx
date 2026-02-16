@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useModal } from "../../context/ModalContext";
 import AuthLayout from "../../components/layout/AuthLayout";
 import logoHome from "../../assets/logo-home.png";
 import { Eye, EyeOff } from 'lucide-react';
@@ -9,6 +10,7 @@ import logo from "../../assets/logo-white.png";
 
 export default function LoginPage() {
   const { login, loading, error } = useAuth();
+  const { showModal } = useModal();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
@@ -25,19 +27,27 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const ok = await login(form.username, form.password);
-    if (ok) navigate("/bienvenido");
+    if (ok) {
+      navigate("/bienvenido");
+    } else {
+      showModal({
+        type: 'error',
+        title: 'Error de acceso',
+        message: 'Credenciales inválidas o usuario no encontrado'
+      });
+    }
   };
 
   return (
     <AuthLayout>
       <div className="w-full h-full flex flex-col items-center lg:items-end lg:w-full px-4 lg:px-6 max-w-lg mx-auto lg:mx-0 justify-center lg:justify-end overflow-hidden">
-        
+
         {/* Logo superior - Ajuste proporcional */}
         <div className="w-full flex justify-center mb-4 transition-all duration-300">
-          <img 
-            src={logo} 
-            alt="Programa Experto Danec" 
-            className="w-[200px] md:w-[260px] lg:w-[320px] object-contain max-h-[15vh] lg:max-h-[20vh]" 
+          <img
+            src={logo}
+            alt="Programa Experto Danec"
+            className="w-[200px] md:w-[260px] lg:w-[320px] object-contain max-h-[15vh] lg:max-h-[20vh]"
           />
         </div>
 
@@ -89,9 +99,9 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {error && (
+            {/* {error && (
               <p className="text-red-500 text-xs text-center font-medium -mt-2">{error}</p>
-            )}
+            )} */}
 
             <button
               type="submit"
@@ -107,9 +117,9 @@ export default function LoginPage() {
               ¿Olvidaste tu contraseña?
             </a>
 
-            <a 
-              className="cursor-pointer flex items-center gap-2" 
-              target="_blank" 
+            <a
+              className="cursor-pointer flex items-center gap-2"
+              target="_blank"
               href="https://grupodanec.com.ec/danec-linea-experto/"
             >
               <span className="text-[9px] md:text-[10px] uppercase tracking-wider text-gray-800 font-bold">volver a</span>

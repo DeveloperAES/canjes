@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { getUserExchanges } from "../api/userApi";
+import { useLoading } from "../context/LoadingContext";
 
 export default function CanjesPage() {
   const [canjes, setCanjes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { showLoading, hideLoading } = useLoading();
 
   useEffect(() => {
     const fetchCanjes = async () => {
       try {
+        showLoading();
         const res = await getUserExchanges();
 
         // Normaliza: si ya es array úsalo, si viene envuelto úsalo también
@@ -19,6 +22,7 @@ export default function CanjesPage() {
         setCanjes(list);
       } finally {
         setLoading(false);
+        hideLoading();
       }
     };
 
