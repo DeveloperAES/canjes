@@ -63,10 +63,15 @@ export default function MiCuentaPage() {
   });
 
   // Derive perfiles based on selected canal 
-  const selectedCanalObj = canales.find(c => c.option_value === formData.canal);
+  const selectedCanalObj = canales.find(c =>
+    c.option_value?.toUpperCase() === formData.canal?.toUpperCase()
+  );
   const availablePerfiles = selectedCanalObj
     ? allPerfiles.filter(p => p.parent_id === selectedCanalObj.id)
     : [];
+  // console.log('mirar perfiles', availablePerfiles);
+  // console.log('mirar canales', canales);
+
 
   // console.log("User Details:", user?.Response?.oResponse.NameCanonical);
   useEffect(() => {
