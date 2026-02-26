@@ -19,6 +19,7 @@ const MonthlySummary = ({ data = {} }) => {
       break;
     }
   }
+  const { profile } = useAuth();
 
   return (
     <div>
@@ -43,7 +44,7 @@ const MonthlySummary = ({ data = {} }) => {
 
       {/* Data */}
       <div className="grid grid-cols-5 text-center py-3 border-b">
-        <span>{participantName}</span>
+        <span>{profile.ExtraInfo.name}</span>
         {months.map(m => {
           const val = (data[m].compras || []).reduce((sum, c) => sum + (c.total || 0), 0);
           return <span key={m}>{val}</span>;
