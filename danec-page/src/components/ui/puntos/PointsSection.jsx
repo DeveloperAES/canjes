@@ -2,6 +2,9 @@ import { useAuth } from "../../../context/AuthContext";
 
 const PointsSection = ({ compras = [], selectedMonth = "" }) => {
 
+  const { profile } = useAuth();
+  console.log(profile);
+
   const totalAmount = compras.reduce((sum, c) => sum + (c.total || 0), 0);
 
   return (
@@ -40,8 +43,8 @@ const PointsSection = ({ compras = [], selectedMonth = "" }) => {
             ) : (
               compras.map((c, i) => (
                 <tr key={i} className="border-b">
-                  <td className="py-3">{c.extra_info?.codigo_cliente || "-"}</td>
-                  <td>{c.name}</td>
+                  <td className="py-3">{profile.IdNumber || "-"}</td>
+                  <td>{profile.ExtraInfo.name}</td>
                   <td>{new Date(c.start).toLocaleDateString()}</td>
                   <td>-</td>
                   <td>{c.total}</td>

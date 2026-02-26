@@ -53,7 +53,7 @@ export default function CarritoPage() {
                 showModal({
                     type: 'error',
                     title: 'Puntos Insuficientes',
-                    message: `No tienes suficientes puntos para agregar más. Tienes ${effectivePoints} disponibles y necesitas ${unitPrice} puntos.`
+                    message: `No tienes suficientes puntos para agregar más. Necesitas ${unitPrice - effectivePoints} puntos más`
                 });
                 return;
             }
@@ -66,7 +66,7 @@ export default function CarritoPage() {
         showLoading();
         try {
             const res = await postUserCartApi({ product: productId, quantity: newQuantity });
-            
+
             // Check for business logic errors even if request was successful
             const sRetorno = res?.Response?.sRetorno || "";
             if (sRetorno.toLowerCase().includes("no se puede") || sRetorno.toLowerCase().includes("supera el stock")) {
@@ -109,7 +109,7 @@ export default function CarritoPage() {
                 try {
                     const res = await clearCartApi();
                     await refreshSession();
-                    
+
                     showModal({
                         type: 'success',
                         title: 'CARRITO LIMPIADO',
@@ -139,9 +139,9 @@ export default function CarritoPage() {
                     <p className="text-white text-center text-xl font-bold uppercase tracking-widest">
                         Carrito de Compras
                     </p>
-                    
+
                     {enrichedCart.length > 0 && (
-                        <button 
+                        <button
                             onClick={handleClearCart}
                             className="flex items-center gap-2 bg-white text-[#f70030] px-5 py-2.5 rounded-xl shadow-lg shadow-black/10 hover:bg-gray-50 active:scale-95 transition-all text-[11px] font-black uppercase tracking-tight"
                         >
@@ -154,11 +154,11 @@ export default function CarritoPage() {
                     {
                         (effectivePoints !== undefined) ? (
                             <p className="text-black text-center text-xl py-4 font-bold">
-                                PUNTOS: {effectivePoints}
+                                PUNTOS DISPONIBLES: {effectivePoints}
                             </p>
                         ) : (
                             <p className="text-black text-center text-xl py-4 font-bold">
-                                PUNTOS: ...
+                                PUNTOS DISPONIBLES: ...
                             </p>
                         )
                     }

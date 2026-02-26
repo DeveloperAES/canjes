@@ -131,6 +131,9 @@ export default function ExchangeModal({ isOpen, onClose, onSuccess }) {
                                 type="tel"
                                 name="Cellphone"
                                 value={formData.Cellphone}
+                                maxLength={10}
+                                pattern="\d{10}"
+                                inputMode="numeric"
                                 onChange={handleChange}
                                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                                 required
@@ -213,7 +216,7 @@ export default function ExchangeModal({ isOpen, onClose, onSuccess }) {
 
                         {/* Contact Information */}
                         <div className="col-span-2 mt-4">
-                            <h3 className="font-bold text-gray-700 mb-3">Información de Contacto</h3>
+                            <h3 className="font-bold text-gray-700 mb-3">Información de Contacto Adicional</h3>
                         </div>
 
                         <div>
@@ -237,6 +240,7 @@ export default function ExchangeModal({ isOpen, onClose, onSuccess }) {
                             <input
                                 type="text"
                                 name="ContactCedula"
+                                maxLength={10}
                                 value={formData.ContactCedula}
                                 onChange={handleChange}
                                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
@@ -252,6 +256,9 @@ export default function ExchangeModal({ isOpen, onClose, onSuccess }) {
                                 type="tel"
                                 name="ContactCellphone"
                                 value={formData.ContactCellphone}
+                                maxLength={10}
+                                pattern="\d{10}"
+                                inputMode="numeric"
                                 onChange={handleChange}
                                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
                                 required

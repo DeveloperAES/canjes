@@ -51,7 +51,7 @@ const MonthlySummary = ({ data = {} }) => {
         {Array.from({ length: Math.max(0, 4 - months.length) }).map((_, i) => <span key={`empty-v-${i}`}>-</span>)}
       </div>
       <div className="text-right mt-2 font-bold px-4">
-        Total Acumulado: {totalpoints}
+        Total Acumulado: {totalpoints.toLocaleString('es-PE')}
       </div>
     </div>
   );
