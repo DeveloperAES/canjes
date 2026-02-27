@@ -1,7 +1,8 @@
 import { useAuth } from "../../../context/AuthContext";
 
 const MonthlySummary = ({ data = {} }) => {
-  const months = Object.keys(data);
+  const monthOrder = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  const months = Object.keys(data).sort((a, b) => monthOrder.indexOf(a.toLowerCase()) - monthOrder.indexOf(b.toLowerCase()));
   const totalpoints = Object.values(data).reduce((acc, monthData) => {
     // Sum total of all purchases in the month
     const monthTotal = (monthData.compras || []).reduce((sum, c) => sum + (c.total || 0), 0);
@@ -47,7 +48,7 @@ const MonthlySummary = ({ data = {} }) => {
         <span>  {profile.ExtraInfo.name}</span>
         {months.map(m => {
           const val = (data[m].compras || []).reduce((sum, c) => sum + (c.total || 0), 0);
-          return <span key={m}>{val}</span>;
+          return <span key={m}>{val.toLocaleString('es-PE')}</span>;
         })}
         {Array.from({ length: Math.max(0, 4 - months.length) }).map((_, i) => <span key={`empty-v-${i}`}>-</span>)}
       </div>
